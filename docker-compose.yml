@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+
+  clusterdb:
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    networks:
+      - cluster
+    environment:
+      - POSTGRES_PASSWORD=cluster
+      - POSTGRES_USER=cluster
+      - POSTGRES_DB=cluster
+    deploy:
+      replicas: 1
+
+  hivemq:
+    image: peez/hivemq:latest
+    ports:
+      - 1883:1883
+    networks:
+      - cluster
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - HIVEMQ_CLUSTER_JDBC_URL=dbc:postgresql://clusterdb:5432/cluster
+      - HIVEMQ_CLUSTER_JDBC_USER=cluster
+      - HIVEMQ_CLUSTER_JDBC_PASSWORD=cluster
+    deploy:
+      replicas: 1
+
+networks:
+  cluster:
+    external: true
